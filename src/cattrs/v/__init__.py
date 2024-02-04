@@ -1,5 +1,5 @@
 """Cattrs validation."""
-from typing import Any, Callable, List, TypeVar, Union, overload
+from typing import Any, Callable, List, Tuple, Type, TypeVar, Union, overload
 
 from attrs import NOTHING, frozen
 
@@ -37,7 +37,10 @@ __all__ = [
 class VAnnotation:
     """Use this with Annotated to get validation."""
 
-    validators: tuple[Callable[[Any], Any]]
+    validators: Tuple[Callable[[Any], Any]]
+
+    def __init__(self, *validators: Callable[[Any], Any]):
+        self.__attrs_init__(validators)
 
 
 def format_exception(exc: BaseException, type: Union[type, None]) -> str:
@@ -153,13 +156,13 @@ E = TypeVar("E")
 
 @overload
 def ensure(
-    type: type[list[T]], *validators: Callable[[list[T]], Any], elems: type[E]
-) -> type[list[E]]:
+    type: Type[List[T]], *validators: Callable[[List[T]], Any], elems: Type[E]
+) -> Type[List[E]]:
     ...
 
 
 @overload
-def ensure(type: type[T], *validators: Callable[[T], Any]) -> type[T]:
+def ensure(type: Type[T], *validators: Callable[[T], Any]) -> Type[T]:
     ...
 
 
@@ -168,5 +171,5 @@ def ensure(type: Any, *validators: Any, elems: Any = NOTHING) -> Any:
         # These are lists.
         if not validators:
             return type[elems]
-        return Annotated[type, VAnnotation(validators)]
-    return Annotated[type, VAnnotation(validators)]
+        return Annotated[type, VAnnotation(*validators)]
+    return Annotated[type, VAnnotation(*validators)]
